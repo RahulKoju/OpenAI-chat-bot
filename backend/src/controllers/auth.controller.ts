@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
 import { errorHandler } from "../utils/error.utils";
+import { createToken } from "../utils/authentication.util";
+import { COOKIE_NAME } from "../utils/constants.util";
 
 // Handle Sign Up
 export const handleSignUp = async (
@@ -63,7 +65,20 @@ export const handleSignIn = async (
     if (!validPassword) {
       return next(errorHandler(403, "Incorrect password"));
     }
-
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      httpOnly: true,
+      signed: true,
+    });
+    const token = createToken(user._id.toString(), user.email, "7d");
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 7);
+    res.cookie(COOKIE_NAME, token, {
+      path: "/",
+      expires,
+      httpOnly: true,
+      signed: true,
+    });
     res.status(200).json({ message: "Sign In successful" });
   } catch (error) {
     next(error);
