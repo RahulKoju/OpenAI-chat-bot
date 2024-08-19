@@ -2,6 +2,7 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { AuthProvider } from "./context/AuthContext.tsx";
 
 const theme = createTheme({
   typography: {
@@ -11,7 +12,9 @@ const theme = createTheme({
 });
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider theme={theme}>
-    <App />
-  </ThemeProvider>
+  <AuthProvider>
+    <ThemeProvider theme={theme}>
+      <App />
+    </ThemeProvider>
+  </AuthProvider>
 );
