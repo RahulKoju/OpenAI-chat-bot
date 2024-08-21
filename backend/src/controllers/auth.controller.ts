@@ -39,7 +39,11 @@ export const handleSignUp = async (
     user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    res.status(200).json({ message: "Sign Up successful" });
+    res.status(200).json({
+      message: "Sign Up successful",
+      name: user.name,
+      email: user.email,
+    });
   } catch (error) {
     next(error);
   }
@@ -79,7 +83,13 @@ export const handleSignIn = async (
       httpOnly: true,
       signed: true,
     });
-    res.status(200).json({ message: "Sign In successful" });
+    res
+      .status(200)
+      .json({
+        message: "Sign In successful",
+        name: user.name,
+        email: user.email,
+      });
   } catch (error) {
     next(error);
   }
