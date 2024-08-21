@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { signInUser } from "../helpers/api-communicator";
 
 type User = {
   name: string;
@@ -22,7 +23,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   useEffect(() => {}, []);
-  const signin = async (email: string, password: string) => {};
+  const signin = async (email: string, password: string) => {
+    const data = await signInUser(email, password);
+    if (data) {
+      setUser({ email: data.email, name: data.name });
+      setIsSignedIn(true);
+    }
+  };
   const signup = async (name: string, email: string, password: string) => {};
   const logout = async () => {};
   const value = {
