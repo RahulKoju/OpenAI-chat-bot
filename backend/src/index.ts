@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./connection";
 import userRoutes from "./routes/user.route";
+import chatRoutes from "./routes/chat.route";
 import { errorMiddleware } from "./middlewares/error.middleware";
 import cookieParser from "cookie-parser";
 dotenv.config();
@@ -22,6 +23,7 @@ app.listen(PORT, () => {
 
 //Routes
 app.use("/api/user", userRoutes);
+app.use("/api/chat", chatRoutes);
 
 //error middleware
 app.use(errorMiddleware);
