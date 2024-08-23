@@ -36,7 +36,7 @@ export const signUpSchema = Joi.object({
       new RegExp(
         "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,30}$"
       )
-    ) // Updated pattern
+    )
     .required()
     .messages({
       "string.pattern.base":
@@ -62,5 +62,11 @@ export const resetPasswordSchema = Joi.object({
     "any.only": `Passwords do not match`,
     "string.empty": `Confirm Password cannot be empty`,
     "any.required": `Confirm Password is required`,
+  }),
+});
+
+export const chatCompletionSchema = Joi.object({
+  message: Joi.string().required().messages({
+    "string.empty": "Message is required",
   }),
 });
