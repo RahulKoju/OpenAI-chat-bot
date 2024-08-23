@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  chat: [chatSchema],
+  chats: [chatSchema],
 });
 
 const User = mongoose.model("User", userSchema);
