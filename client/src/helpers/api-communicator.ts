@@ -22,3 +22,16 @@ export const checkAuthStatus = async () => {
     throw err;
   }
 };
+
+export const sendChatReq = async (message: string) => {
+  try {
+    const res = await axios.post("/chat/new", { message });
+    if (res.status !== 200) {
+      throw new Error("Unable to send chat");
+    }
+    const data = await res.data;
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};

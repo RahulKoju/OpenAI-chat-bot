@@ -34,7 +34,7 @@ export const generateChatCompletion = async (
 
     // Generate the chat completion from OpenAI
     const chatResponse = await client.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: chats,
     });
 

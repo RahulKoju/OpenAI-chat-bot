@@ -3,64 +3,28 @@ import { useAuth } from "../helpers/useAuth";
 import { red } from "@mui/material/colors";
 import { ChatItem } from "../components/chat/ChatItem";
 import { IoMdSend } from "react-icons/io";
+import { useRef, useState } from "react";
+import { sendChatReq } from "../helpers/api-communicator";
 
-const chatMessages: { role: "user" | "assistant"; content: string }[] = [
-  {
-    role: "assistant",
-    content:
-      "You are an AI assistant helping with general inquiries and providing information.",
-  },
-  {
-    role: "user",
-    content:
-      "Hi, can you help me with some information about Python programming?",
-  },
-  {
-    role: "assistant",
-    content:
-      "Of course! Python is a versatile programming language used for web development, data analysis, artificial intelligence, and more. What specifically would you like to know?",
-  },
-  {
-    role: "user",
-    content: "Can you explain what a list comprehension is?",
-  },
-  {
-    role: "assistant",
-    content:
-      "Sure! A list comprehension is a concise way to create lists in Python. It allows you to generate lists using a single line of code by applying an expression to each element in an iterable. For example, `[x * 2 for x in range(5)]` creates a list of numbers from 0 to 8, each multiplied by 2.",
-  },
-  {
-    role: "user",
-    content: "That's helpful. How about dictionaries? What are they used for?",
-  },
-  {
-    role: "assistant",
-    content:
-      "Dictionaries in Python are collections of key-value pairs. They are useful for storing data that needs to be quickly retrieved based on a unique key. For example, `{'name': 'Alice', 'age': 25}` is a dictionary where 'name' and 'age' are keys associated with their respective values 'Alice' and 25.",
-  },
-  {
-    role: "user",
-    content:
-      "Great, thanks for the explanation. How do I handle errors in Python?",
-  },
-  {
-    role: "assistant",
-    content:
-      "In Python, you handle errors using `try` and `except` blocks. You place the code that might cause an error inside the `try` block, and if an error occurs, the code inside the `except` block will run. For example:\n\n```python\ntry:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')\n```",
-  },
-  {
-    role: "user",
-    content: "Thanks! That clears things up.",
-  },
-  {
-    role: "assistant",
-    content:
-      "You're welcome! If you have any more questions, feel free to ask.",
-  },
-];
+type message = {
+  content: string;
+  role: "user" | "assistant";
+};
 
 export default function Chat() {
   const auth = useAuth();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [chatMessages, setChatMessages] = useState<message[]>([]);
+  const handleSubmit = async () => {
+    const content = inputRef.current?.value as string;
+    if (inputRef && inputRef.current) {
+      inputRef.current.value = "";
+    }
+    const newMessage: message = { role: "user", content };
+    setChatMessages((prev) => [...prev, newMessage]);
+    const chatData=await sendChatReq(content);
+    setChatMessages([...chatData.chats]);
+  };
   return (
     <Box
       sx={{
@@ -143,7 +107,7 @@ export default function Chat() {
             mx: "auto",
           }}
         >
-          Model-GPT 4.0
+          Model-GPT 3.5 Turbo
         </Typography>
         <Box
           sx={{
@@ -166,10 +130,14 @@ export default function Chat() {
         <div className="w-full p-5 rounded-lg bg-[rgb(17,27,39)] flex m-auto">
           {""}
           <input
+            ref={inputRef}
             type="text"
             className="w-full bg-transparent p-3 rounded-none outline-none text-white text-xl"
           />
-          <IconButton sx={{ ml: "auto", color: "white" }}>
+          <IconButton
+            onClick={handleSubmit}
+            sx={{ ml: "auto", color: "white" }}
+          >
             <IoMdSend />
           </IconButton>
         </div>
