@@ -3,8 +3,9 @@ import { useAuth } from "../helpers/useAuth";
 import { red } from "@mui/material/colors";
 import { ChatItem } from "../components/chat/ChatItem";
 import { IoMdSend } from "react-icons/io";
-import { useRef, useState } from "react";
-import { sendChatReq } from "../helpers/api-communicator";
+import { useLayoutEffect, useRef, useState } from "react";
+import { getUserChats, sendChatReq } from "../helpers/api-communicator";
+import toast from "react-hot-toast";
 
 type message = {
   content: string;
@@ -22,9 +23,25 @@ export default function Chat() {
     }
     const newMessage: message = { role: "user", content };
     setChatMessages((prev) => [...prev, newMessage]);
-    const chatData=await sendChatReq(content);
+    const chatData = await sendChatReq(content);
     setChatMessages([...chatData.chats]);
   };
+
+  useLayoutEffect(() => {
+    if (auth.isSignedIn && auth.user) {
+      toast.loading("Loading chats", { id: "loadchats" });
+      getUserChats()
+        .then((data) => {
+          setChatMessages([...data.chats]);
+          toast.success("Successfully loaded chats", { id: "loadchats" });
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Loading failed", { id: "loadchats" });
+        });
+    }
+  }, [auth]);
+
   return (
     <Box
       sx={{
