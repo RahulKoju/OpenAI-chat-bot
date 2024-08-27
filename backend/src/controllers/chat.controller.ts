@@ -74,3 +74,27 @@ export const handleGetAllChatsOfUser = async (
     next(error);
   }
 };
+
+export const handleDeleteUserChats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return next(
+        errorHandler(401, "user not registererd or token malfunction")
+      );
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return next(errorHandler(401, "Permission didn't match"));
+    }
+    //@ts-ignore
+    user.chats=[];
+    await user.save();
+    res.status(200).json({ message: "OK"});
+  } catch (error) {
+    next(error);
+  }
+};
