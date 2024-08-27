@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { verifyToken } from "../middlewares/verifyToken.middleware";
 import { chatCompletionSchema } from "../utils/validation.util";
-import { generateChatCompletion } from "../controllers/chat.controller";
+import {
+  generateChatCompletion,
+  handleGetAllChatsOfUser,
+} from "../controllers/chat.controller";
 import validation from "../middlewares/validation.middleware";
 
 const router = Router();
@@ -12,5 +15,7 @@ router.post(
   validation(chatCompletionSchema),
   generateChatCompletion
 );
+
+router.get("/all-chats", verifyToken, handleGetAllChatsOfUser);
 
 export default router;
