@@ -9,6 +9,7 @@ type Props = {
 export const NavigationLink = (props: Props) => {
   return (
     <Link
+      onClick={props.onClick}
       className="font-semibold uppercase mx-2 px-4 py-3 rounded-xl"
       to={props.to}
       style={{ background: props.bg, color: props.textColor }}

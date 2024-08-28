@@ -1,10 +1,9 @@
+import { createContext, ReactNode, useEffect, useState } from "react";
 import {
-  createContext,
-  ReactNode,
-  useEffect,
-  useState
-} from "react";
-import { checkAuthStatus, signInUser } from "../helpers/api-communicator";
+  checkAuthStatus,
+  logoutUser,
+  signInUser,
+} from "../helpers/api-communicator";
 
 type User = {
   name: string;
@@ -58,8 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    // Implement logout logic or remove this function until needed
-    console.log("Logout not implemented");
+    await logoutUser();
+    setIsSignedIn(false);
+    setUser(null);
+    window.location.reload();
   };
 
   const value = {

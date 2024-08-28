@@ -3,13 +3,14 @@ import { useAuth } from "../helpers/useAuth";
 import { red } from "@mui/material/colors";
 import { ChatItem } from "../components/chat/ChatItem";
 import { IoMdSend } from "react-icons/io";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   deleteUserChats,
   getUserChats,
   sendChatReq,
 } from "../helpers/api-communicator";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 type message = {
   content: string;
@@ -17,6 +18,7 @@ type message = {
 };
 
 export default function Chat() {
+  const naviagte = useNavigate();
   const auth = useAuth();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [chatMessages, setChatMessages] = useState<message[]>([]);
@@ -36,10 +38,10 @@ export default function Chat() {
       toast.loading("Deleting chats", { id: "deletechats" });
       await deleteUserChats();
       setChatMessages([]);
-      toast.loading("Deleted chats successfully", { id: "deletechats" });
+      toast.success("Deleted chats successfully", { id: "deletechats" });
     } catch (error) {
       console.log(error);
-      toast.loading("Deleting chats failed", { id: "deletechats" });
+      toast.error("Deleting chats failed", { id: "deletechats" });
     }
   };
 
@@ -58,6 +60,11 @@ export default function Chat() {
     }
   }, [auth]);
 
+  useEffect(() => {
+    if (!auth.user) {
+      return naviagte("/sign-in");
+    }
+  }, [auth]);
   return (
     <Box
       sx={{
