@@ -83,13 +83,39 @@ export const handleSignIn = async (
       httpOnly: true,
       signed: true,
     });
-    res
-      .status(200)
-      .json({
-        message: "Sign In successful",
-        name: user.name,
-        email: user.email,
-      });
+    res.status(200).json({
+      message: "Sign In successful",
+      name: user.name,
+      email: user.email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const handleLogout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findById(res.locals.jwtData.id);
+    if (!user) {
+      return next(
+        errorHandler(401, "User not registered or token malfunctions")
+      );
+    }
+    if (user._id.toString() !== res.locals.jwtData.id) {
+      return next(errorHandler(401, "Permission didn't match"));
+    }
+    res.clearCookie(COOKIE_NAME, {
+      path: "/",
+      httpOnly: true,
+      signed: true,
+    });
+    res.status(200).json({
+      message: "Logged Out",
+    });
   } catch (error) {
     next(error);
   }
