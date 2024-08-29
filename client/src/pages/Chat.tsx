@@ -18,19 +18,33 @@ type message = {
 };
 
 export default function Chat() {
-  const naviagte = useNavigate();
+  const navigate = useNavigate();
   const auth = useAuth();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [chatMessages, setChatMessages] = useState<message[]>([]);
+
   const handleSubmit = async () => {
-    const content = inputRef.current?.value as string;
+    const content = inputRef.current?.value.trim();
+    if (!content) return;
+
     if (inputRef && inputRef.current) {
       inputRef.current.value = "";
     }
+
     const newMessage: message = { role: "user", content };
     setChatMessages((prev) => [...prev, newMessage]);
-    const chatData = await sendChatReq(content);
-    setChatMessages([...chatData.chats]);
+
+    try {
+      const chatData = await sendChatReq(content);
+      if (chatData?.chats) {
+        setChatMessages([...chatMessages, ...chatData.chats]);
+      } else {
+        toast.error("Failed to retrieve chat response.");
+      }
+    } catch (error) {
+      console.error("Error sending chat request:", error);
+      toast.error("Sending chat request failed.");
+    }
   };
 
   const handleDeleteChats = async () => {
@@ -40,7 +54,7 @@ export default function Chat() {
       setChatMessages([]);
       toast.success("Deleted chats successfully", { id: "deletechats" });
     } catch (error) {
-      console.log(error);
+      console.error("Error deleting chats:", error);
       toast.error("Deleting chats failed", { id: "deletechats" });
     }
   };
@@ -50,11 +64,15 @@ export default function Chat() {
       toast.loading("Loading chats", { id: "loadchats" });
       getUserChats()
         .then((data) => {
-          setChatMessages([...data.chats]);
-          toast.success("Successfully loaded chats", { id: "loadchats" });
+          if (data?.chats) {
+            setChatMessages([...data.chats]);
+            toast.success("Successfully loaded chats", { id: "loadchats" });
+          } else {
+            toast.error("Failed to load chats.", { id: "loadchats" });
+          }
         })
         .catch((err) => {
-          console.log(err);
+          console.error("Error loading chats:", err);
           toast.error("Loading failed", { id: "loadchats" });
         });
     }
@@ -62,9 +80,10 @@ export default function Chat() {
 
   useEffect(() => {
     if (!auth.user) {
-      return naviagte("/sign-in");
+      navigate("/sign-in");
     }
-  }, [auth]);
+  }, [auth, navigate]);
+
   return (
     <Box
       sx={{
@@ -103,15 +122,18 @@ export default function Chat() {
               fontWeight: 700,
             }}
           >
-            {auth?.user?.name[0]}
-            {auth?.user?.name.split(" ")[1][0]}
+            {auth?.user?.name
+              ? `${auth.user.name[0].toUpperCase()}${
+                  auth.user.name.split(" ")[1]?.[0].toUpperCase() || ""
+                }`
+              : "U"}
           </Avatar>
           <Typography sx={{ mx: "auto", fontFamily: "work sans" }}>
             You are talking to Chatbot
           </Typography>
           <Typography sx={{ mx: "auto", fontFamily: "work sans", my: 4, p: 3 }}>
             You can ask questions about anything. But avoid sharing personal
-            information
+            information.
           </Typography>
           <Button
             onClick={handleDeleteChats}
@@ -127,7 +149,7 @@ export default function Chat() {
               },
             }}
           >
-            Clear Coversation
+            Clear Conversation
           </Button>
         </Box>
       </Box>
@@ -169,7 +191,6 @@ export default function Chat() {
           ))}
         </Box>
         <div className="w-full p-5 rounded-lg bg-[rgb(17,27,39)] flex m-auto">
-          {""}
           <input
             ref={inputRef}
             type="text"
