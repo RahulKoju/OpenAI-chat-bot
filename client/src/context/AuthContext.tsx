@@ -3,6 +3,7 @@ import {
   checkAuthStatus,
   logoutUser,
   signInUser,
+  signUpUser,
 } from "../helpers/api-communicator";
 
 type User = {
@@ -52,8 +53,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    // Implement signup logic or remove this function until needed
-    console.log("Signup not implemented");
+    try {
+      const data = await signUpUser(name, email, password);
+      if (data) {
+        setUser(null);
+        setIsSignedIn(false);
+      }
+    } catch (error) {
+      console.error("Error signing up:", error);
+    }
   };
 
   const logout = async () => {
