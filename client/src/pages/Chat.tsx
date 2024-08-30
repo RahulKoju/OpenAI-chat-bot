@@ -12,7 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-type message = {
+type Message = {
   content: string;
   role: "user" | "assistant";
 };
@@ -21,7 +21,8 @@ export default function Chat() {
   const navigate = useNavigate();
   const auth = useAuth();
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [chatMessages, setChatMessages] = useState<message[]>([]);
+  const chatBoxRef = useRef<HTMLDivElement | null>(null);
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
 
   const handleSubmit = async () => {
     const content = inputRef.current?.value.trim();
@@ -31,13 +32,13 @@ export default function Chat() {
       inputRef.current.value = "";
     }
 
-    const newMessage: message = { role: "user", content };
+    const newMessage: Message = { role: "user", content };
     setChatMessages((prev) => [...prev, newMessage]);
 
     try {
       const chatData = await sendChatReq(content);
       if (chatData?.chats) {
-        setChatMessages([...chatMessages, ...chatData.chats]);
+        setChatMessages((prev) => [...prev, ...chatData.chats]);
       } else {
         toast.error("Failed to retrieve chat response.");
       }
@@ -83,6 +84,19 @@ export default function Chat() {
       navigate("/sign-in");
     }
   }, [auth, navigate]);
+
+  useEffect(() => {
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Prevent form submission or other default behaviors
+      handleSubmit();
+    }
+  };
 
   return (
     <Box
@@ -173,6 +187,7 @@ export default function Chat() {
           Model-GPT 3.5 Turbo
         </Typography>
         <Box
+          ref={chatBoxRef}
           sx={{
             width: "100%",
             height: "60vh",
@@ -190,11 +205,13 @@ export default function Chat() {
             <ChatItem content={chat.content} role={chat.role} key={index} />
           ))}
         </Box>
-        <div className="w-full p-5 rounded-lg bg-[rgb(17,27,39)] flex m-auto">
+        <div className="w-full rounded-lg bg-[rgb(17,27,39)] flex m-auto">
           <input
             ref={inputRef}
             type="text"
-            className="w-full bg-transparent p-3 rounded-none outline-none text-white text-xl"
+            placeholder="Type your message..."
+            className="w-full bg-transparent p-6 rounded-none outline-none text-white text-xl"
+            onKeyDown={handleKeyPress}
           />
           <IconButton
             onClick={handleSubmit}
