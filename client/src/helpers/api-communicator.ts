@@ -43,7 +43,7 @@ export const sendChatReq = async (message: string) => {
       throw new Error("Unable to send chat");
     }
     const data = await res.data;
-    return data;
+    return { chats: [{ role: "assistant", content: data.message }] };
   } catch (err) {
     throw err;
   }

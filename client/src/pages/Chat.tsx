@@ -38,7 +38,7 @@ export default function Chat() {
     try {
       const chatData = await sendChatReq(content);
       if (chatData?.chats) {
-        setChatMessages((prev) => [...prev, ...chatData.chats]);
+        setChatMessages((prev) => [...prev, ...chatData.chats as Message[]]);
       } else {
         toast.error("Failed to retrieve chat response.");
       }
