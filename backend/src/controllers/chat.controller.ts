@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/user.model";
 import { errorHandler } from "../utils/error.utils";
-import OpenAI from "openai";
-import { ChatCompletionMessageParam } from "openai/src/resources/index.js";
 
 export const generateChatCompletion = async (
   req: Request,
@@ -16,39 +14,60 @@ export const generateChatCompletion = async (
       return next(errorHandler(401, "User not found"));
     }
 
-    // Convert user's chat history to the correct format
-    const chats = user.chats.map(({ role, content }) => ({
-      role,
-      content,
-    })) as ChatCompletionMessageParam[];
+    const apikey = process.env.GROQ_API_KEY;
+    const url = "https://api.groq.com/openai/v1/chat/completions";
+    const data = {
+      messages: [
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+      model: "llama3-8b-8192",
+    };
 
-    // Add the new user message to the chat history
-    chats.push({ content: message, role: "user" });
-    user.chats.push({ content: message, role: "user" });
-
-    // Initialize the OpenAI client
-    const client = new OpenAI({
-      apiKey: process.env.OPEN_AI_SECRET,
-      organization: process.env.OPEN_AI_ORGANIZATION_ID,
+    // await fetch(url, {
+    //   method: "POST",
+    //   headers: {
+    //     Authorization: `Bearer ${apikey}`,
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(data),
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     //console.log("Success:", data);
+    //     console.log("meesages", data.choices[0].message.content);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error);
+    //   });
+    
+    // Fetch the AI response
+    const aiResponse = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apikey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
 
-    // Generate the chat completion from OpenAI
-    const chatResponse = await client.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: chats,
-    });
+    const aiData = await aiResponse.json();
+    const aiMessage = aiData.choices[0].message.content;
 
-    // Handle the AI's response
-    const aiMessage = chatResponse.choices[0].message;
-    if (aiMessage) {
-      user.chats.push(aiMessage);
-      await user.save();
+    // Create new chat entries
+    const newChats = [
+      { role: "user", content: message },
+      { role: "assistant", content: aiMessage },
+    ];
 
-      // Return the AI's message to the client
-      return res.status(200).json({ message: aiMessage });
-    } else {
-      return next(errorHandler(500, "Failed to generate AI response"));
-    }
+    // Add new chats to the user's chat history
+    user.chats.push(...newChats);
+    await user.save();
+
+    // Respond with the AI message
+    return res.status(200).json({ message: aiMessage });
   } catch (error) {
     return next(error);
   }
@@ -91,9 +110,9 @@ export const handleDeleteUserChats = async (
       return next(errorHandler(401, "Permission didn't match"));
     }
     //@ts-ignore
-    user.chats=[];
+    user.chats = [];
     await user.save();
-    res.status(200).json({ message: "OK"});
+    res.status(200).json({ message: "OK" });
   } catch (error) {
     next(error);
   }
