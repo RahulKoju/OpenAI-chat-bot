@@ -184,7 +184,7 @@ export default function Chat() {
             mx: "auto",
           }}
         >
-          Model-GPT 3.5 Turbo
+          Model: llama3-8b-8192
         </Typography>
         <Box
           ref={chatBoxRef}

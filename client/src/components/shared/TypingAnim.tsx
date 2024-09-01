@@ -6,7 +6,7 @@ const TypingAnim = () => {
       sequence={[
         "Chat With Your OWN AI",
         1000,
-        "Built With OpenAI 🤖",
+        "Built With Groq 🤖",
         2000,
         "Your Own Customized ChatGPT 💻",
         1500,
