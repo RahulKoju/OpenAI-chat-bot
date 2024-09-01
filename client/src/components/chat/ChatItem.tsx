@@ -1,4 +1,5 @@
-import { Avatar, Box, Typography } from "@mui/material";
+import React from 'react';
+import { Avatar, Box, Typography, Link } from "@mui/material";
 import { useAuth } from "../../helpers/useAuth";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -18,14 +19,11 @@ function extractCodeFromString(message: string) {
 
 // Function to dynamically format content into JSX elements
 function formatContent(content: string) {
-  // Remove any asterisks and process the content
   const sanitizedContent = content.replace(/\*/g, '');
 
-  // Split content into lines
   const lines = sanitizedContent.split('\n');
-  
   return lines.map((line, index) => {
-    // Detect headings (lines starting with ##)
+    // Handle headings (lines starting with ##)
     if (line.startsWith('## ')) {
       return (
         <Typography key={index} variant="h6" fontWeight={600} sx={{ mb: 1 }}>
@@ -33,22 +31,53 @@ function formatContent(content: string) {
         </Typography>
       );
     }
-    // Detect list items (lines starting with -)
+    // Handle list items (lines starting with -)
     else if (line.startsWith('- ')) {
       return (
         <Typography key={index} paragraph fontWeight={500} sx={{ mb: 1 }}>
-          {line.substring(2)}
+          • {line.substring(2)}
         </Typography>
       );
+    }
+    // Handle links (detect URLs and convert them to clickable links)
+    else if (line.match(/\[([^\]]+)\]\(([^\)]+)\)/g)) {
+      const parts = line.split(/(\[([^\]]+)\]\(([^\)]+)\))/g);
+      return (
+        <Typography key={index} paragraph>
+          {parts.map((part, i) => {
+            const match = part.match(/\[([^\]]+)\]\(([^\)]+)\)/);
+            if (match) {
+              const [_, text, url] = match;
+              return (
+                <Link key={i} href={url} target="_blank" rel="noopener noreferrer">
+                  {text}
+                </Link>
+              );
+            } else {
+              return part;
+            }
+          })}
+        </Typography>
+      );
+    }
+    // Handle images (Markdown style)
+    else if (line.startsWith('![')) {
+      const match = line.match(/!\[([^\]]*)\]\(([^\)]+)\)/);
+      if (match) {
+        const [_, alt, src] = match;
+        return (
+          <Box key={index} sx={{ mb: 2 }}>
+            <img src={src} alt={alt} style={{ maxWidth: '100%' }} />
+          </Box>
+        );
+      }
     }
     // Normal paragraphs
-    else {
-      return (
-        <Typography key={index} paragraph sx={{ mb: 2 }}>
-          {line}
-        </Typography>
-      );
-    }
+    return (
+      <Typography key={index} paragraph sx={{ mb: 2 }}>
+        {line}
+      </Typography>
+    );
   });
 }
 
@@ -83,6 +112,9 @@ export const ChatItem: React.FC<ChatItemProps> = ({ content, role }) => {
     bgcolor: "#004d56",
   };
 
+  const userName = auth?.user?.name;
+  const initials = userName ? `${userName[0]}${userName.split(" ")[1]?.[0] || ''}` : '';
+
   return role === "assistant" ? (
     <Box sx={assistantBoxStyles}>
       <Avatar sx={{ ml: "0" }}>
@@ -107,8 +139,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({ content, role }) => {
   ) : (
     <Box sx={userBoxStyles}>
       <Avatar sx={{ ml: "0", bgcolor: "black", color: "white" }}>
-        {auth?.user?.name[0]}
-        {auth?.user?.name.split(" ")[1][0]}
+        {initials}
       </Avatar>
       <Box>
         {!messageBlocks ? (
