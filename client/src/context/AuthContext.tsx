@@ -14,8 +14,8 @@ type User = {
 type UserAuth = {
   isSignedIn: boolean;
   user: User | null;
-  signin: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signin: (email: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
 };
 
@@ -40,28 +40,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkStatus();
   }, []);
 
-  const signin = async (email: string, password: string) => {
+  const signin = async (email: string, password: string): Promise<boolean> => {
     try {
       const data = await signInUser(email, password);
       if (data) {
         setUser({ email: data.email, name: data.name });
         setIsSignedIn(true);
+        return true;
       }
     } catch (error) {
       console.error("Error signing in:", error);
     }
+    return false;
   };
 
-  const signup = async (name: string, email: string, password: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    password: string
+  ): Promise<boolean> => {
     try {
       const data = await signUpUser(name, email, password);
       if (data) {
         setUser(null);
         setIsSignedIn(false);
+        return true;
       }
     } catch (error) {
       console.error("Error signing up:", error);
     }
+    return false;
   };
 
   const logout = async () => {

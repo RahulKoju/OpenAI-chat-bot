@@ -16,16 +16,24 @@ export default function SignUp() {
     const password = formData.get("password") as string;
     const name = formData.get("name") as string;
     try {
+      if (!name || !email || !password) {
+        toast.error("Please fill out all the feilds", { id: "signup" });
+        return;
+      }
       toast.loading("Signing Up", { id: "signup" });
-      await auth?.signup(name, email, password);
-      toast.success("Signed Up Successfully", { id: "signup" });
-      return navigate("/sign-in");
+      const success = await auth?.signup(name, email, password);
+      if (success) {
+        toast.success("Signed Up Successfully", { id: "signup" });
+        return navigate("/sign-in");
+      } else {
+        toast.error("Sign-up failed. Please try again.", { id: "signup" });
+      }
     } catch (error) {
       console.log(error);
       toast.error("Signing Up Failed", { id: "signup" });
     }
   };
-  
+
   useEffect(() => {
     if (auth?.user) {
       return navigate("/chat");

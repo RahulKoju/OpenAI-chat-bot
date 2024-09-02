@@ -15,9 +15,19 @@ export default function SignIn() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     try {
+      if (!email || !password) {
+        toast.error("Please enter email and password", { id: "signin" });
+        return;
+      }
+
       toast.loading("Signing In", { id: "signin" });
-      await auth?.signin(email, password);
-      toast.success("Signed In Successfully", { id: "signin" });
+      const success = await auth?.signin(email, password);
+      if (success) {
+        toast.success("Signed In Successfully", { id: "signin" });
+        navigate("/chat");
+      } else {
+        toast.error("Invalid email or password", { id: "signin" });
+      }
     } catch (error) {
       console.log(error);
       toast.error("Signing In Failed", { id: "signin" });
