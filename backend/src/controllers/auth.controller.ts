@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.utils";
 import { createToken } from "../utils/authentication.util";
 import { COOKIE_NAME } from "../utils/constants.util";
 
+const isProduction = process.env.NODE_ENV === "production";
 // Handle Sign Up
 export const handleSignUp = async (
   req: Request,
@@ -69,20 +70,29 @@ export const handleSignIn = async (
     if (!validPassword) {
       return next(errorHandler(403, "Incorrect password"));
     }
-    res.clearCookie(COOKIE_NAME, {
+
+    // Common cookie options
+    const cookieOptions = {
       path: "/",
       httpOnly: true,
       signed: true,
-    });
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
+      secure: isProduction,
+    };
+
+    // Clear existing cookie
+    res.clearCookie(COOKIE_NAME, cookieOptions);
+
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
+
+    // Set new cookie
     res.cookie(COOKIE_NAME, token, {
-      path: "/",
+      ...cookieOptions,
       expires,
-      httpOnly: true,
-      signed: true,
     });
+
     res.status(200).json({
       message: "Sign In successful",
       name: user.name,
@@ -112,6 +122,8 @@ export const handleLogout = async (
       path: "/",
       httpOnly: true,
       signed: true,
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
+      secure: isProduction,
     });
     res.status(200).json({
       message: "Logged Out",
