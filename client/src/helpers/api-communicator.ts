@@ -24,13 +24,14 @@ export const signUpUser = async (
 
 export const checkAuthStatus = async () => {
   try {
-    const res = await axios.get("/user/check-status");
-    if (res.status !== 200) {
-      throw new Error("Unable to authenticate");
-    }
-    const data = await res.data;
-    return data;
+    const res = await axios.get("/user/check-status", { withCredentials: true });
+    return res.data;
   } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      // User is not authenticated, but this is not an error condition
+      return null;
+    }
+    // For other types of errors, we still want to log and throw
     console.error("Auth status error:", err);
     throw err;
   }
